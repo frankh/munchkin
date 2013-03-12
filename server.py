@@ -10,6 +10,7 @@ from collections import defaultdict
 log = logging.getLogger("MunchkinServer")
 log.setLevel(logging.DEBUG)
 
+#placeholder for gettext
 def gettext(string):
 	return string
 
@@ -48,7 +49,7 @@ class Deck(object):
 			random.shuffle(self.cards)
 	
 class ClassicDoorDeck(Deck):
-	def default_card(self, id):
+	def hidden_card(self, id):
 		return cards.DoorCard(self, id)
 
 	name = "Door"
@@ -60,7 +61,7 @@ class ClassicDoorDeck(Deck):
 		self.shuffle()
 
 class ClassicTreasureDeck(Deck):
-	def default_card(self, id):
+	def hidden_card(self, id):
 		return cards.TreasureCard(self, id)
 	name = "Treasure"
 
@@ -93,7 +94,7 @@ class Player(object):
 			'level': self.level,
 			'bonus': self.bonus,
 			'total': self.total,
-			'hand': [card.info() if show_hand else card.deck.default_card(card.id).info() for card in self.hand],
+			'hand': [card.info() if show_hand else card.deck.hidden_card(card.id).info() for card in self.hand],
 			'carried': [card.info() for card in self.carried],
 		}
 
@@ -319,7 +320,7 @@ class Game(object):
 				self.send(current_player, {
 					'player': player.id,
 					'type': "draw",
-					'card': card.info() if player == current_player or face_up else deck.default_card(card.id).info(),
+					'card': card.info() if player == current_player or face_up else deck.hidden_card(card.id).info(),
 				})
 
 games = {}
