@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="jQuery-1.7.2.js"></script>
+		<script src="main.js"></script>
+		<style>
+		#game_board {
+			width: 700px;
+			height: 700px;
+			background-color: #ffd09a;
+			border: solid black 1px;
+			padding: 10px;
+		}
+
+		.player {
+			background-color: #bb6200;
+			width: 100%;
+			border: solid black 1px;
+
+			font-family: consolas;
+			font-size: 8pt;
+		}
+
+		.player_container {
+			background-color: #bb6200;
+			border: solid black 1px;
+
+			padding: 25px;
+			font-family: consolas;
+			font-size: 8pt;
+		}
+
+		.player_hand {
+			width: 100%;
+			height: 100px;
+			background-color: #333333;
+			border: solid black 1px;
+			margin-bottom: 25px;
+		}
+
+		.player_carry {
+			width: 100%;
+			height: 100px;
+			background-color: #ffe0bc;
+			border: solid black 1px;
+		}
+
+		.card {
+			width: 65px;
+			height: 100px;
+			border-radius: 8px;
+
+			display: inline-block;
+			background-color: #FFCCAA;
+			background-size: 100%, 100%;
+		}
+
+		.action {
+			width: 20px;
+			height: 20px;
+			opacity: 0.5;
+
+			display: inline-block;
+		}
+
+		.action:hover {
+			opacity: 0.9;
+		}
+
+		.action_FIGHT {
+			background-image: url(res/icons/combat.png);
+			background-size: 100%, 100%;
+		}
+
+		.action_CARRY {
+			background-image: url(res/icons/carry.png);
+			background-size: 100%, 100%;
+		}
+
+		.template {
+			display: none !important;
+		}
+
+		.player_name {
+			font-weight: bold;
+		}
+
+		#console {
+			border: solid black 1px;
+			background-color: #999999;
+
+			width: 80%;
+			padding: 10px;
+			margin: 20px;
+			min-height: 100px;
+
+			font-family: consolas;
+			font-size: 8px;
+		}
+		</style>
+	</head>
+	<body>
+		Name: <input id="username" type="text"/>
+		Game: <input id="game_name" type="text"/>
+
+		<button id="connect">Connect</button>
+		<div id="game_board"></div>
+		<div id="console"></div>
+
+		<div class="player template">
+			<div class="player_container">
+				<button class="player_ready">Ready</button>
+				<span class="player_name"> </span>
+				Level: <span class="player_level">1</span>
+				Bonus: <span class="player_bonus">0</span>
+				Total: <span class="player_total">1</span>
+				<div class="player_hand"></div>
+				<div class="player_carry"></div>
+			</div>
+		</div>
+		<div class="card template">
+			<div class="action action_FIGHT"></div>
+			<div class="action action_CARRY"></div>
+		</div>
+	</body>
+</html>
