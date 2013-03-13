@@ -46,6 +46,10 @@ class Deck(object):
 			random.shuffle(self.discards)
 		else:
 			random.shuffle(self.cards)
+
+		# Regenerate the id's after the cards have been shuffled so that you can't track the ids.
+		for card in self.cards:
+			card.id = self.id_generator.next()
 	
 class ClassicDoorDeck(Deck):
 	def hidden_card(self, id):
