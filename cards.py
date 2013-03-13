@@ -12,7 +12,7 @@ class Card(object):
 	def can_play(self, move, phase, in_turn):
 		return False
 
-	def info(self):
+	def info(self, player=None):
 		return {
 			'id': self.id,
 			'name': self.name,
@@ -28,6 +28,8 @@ class TreasureCard(Card):
 	image = "treasure_back.png"
 
 class Monster(DoorCard):
+	level = 1
+
 	def bonus(self, player):
 		return 0
 
@@ -43,6 +45,14 @@ class Monster(DoorCard):
 	def can_play(self, move, phase, in_turn):
 		return super().can_play(move, phase, in_turn) or \
 		    (move == Moves.FIGHT and self.in_hand and in_turn)
+
+	def info(self, player=None):
+		d = super().info(player)
+		d['level'] = self.level
+		if player:
+			d['bonus'] = self.bonus(player)
+
+		return d
 
 class Item(TreasureCard):
 	name = "Unimplemented Item"
@@ -60,8 +70,8 @@ class Item(TreasureCard):
 		return super().can_play(move, phase, in_turn) or \
 		    (move == Moves.CARRY and self.in_hand and in_turn)
 
-	def info(self):
-		d = super().info()
+	def info(self, player=None):
+		d = super().info(player)
 		d['bonus'] = self.bonus
 		return d
 

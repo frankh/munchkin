@@ -1,6 +1,5 @@
 import random
 import cards
-import pygame
 import logging
 import threading
 import json
@@ -82,6 +81,7 @@ class Player(object):
 		self.name = name
 		self.connected = True
 		self.connection = connection
+		self.ready = False
 
 	def info(self, other_player=None):
 		show_hand = other_player == None or other_player == self
@@ -138,6 +138,9 @@ class Move(object):
 		if not isinstance(player, Player):
 			self.player = game.player_from_id(player)
 
+class Combat(object):
+	pass
+
 class Game(object):
 
 	def __init__(self, password=None):
@@ -145,7 +148,6 @@ class Game(object):
 
 		self.players = []
 		self.cards = {}
-		self.clock = pygame.time.Clock()
 		self.password = password
 		self.started = False
 		self.killed = False
@@ -200,12 +202,51 @@ class Game(object):
 		self.current_player = player
 		self.phase = phase
 
+		if player:
+			self.broadcast_message("It is now "+player.name+"'s turn")
+		
 		self.update_valid_moves()
 
 	def update_valid_moves(self):
 		for player in self.players:
-			self.send(player, {'type': 'valid_moves', 'moves':self.get_valid_moves(player)})
+			player_moves = self.get_valid_moves(player)
+			self.send(player, {'type': 'valid_moves', 'moves':player_moves})
 
+			# If the player has no moves, auto-ready them. If their only move has no card, their only move is to ready. Ready them.
+			if (not player.ready) and ((not player_moves) or (len(player_moves) == 1 and None in player_moves)):
+				self.broadcast_message(player.name + " is ready")
+				self.ready(player)
+
+	def ready(self, player):
+		player.ready = True
+		all_ready = True
+
+		for player in self.players:
+			all_ready &= player.ready
+
+		if all_ready:
+			for player in self.players:
+				player.ready = False
+
+			self.next_phase()
+
+	def next_phase(self):
+		if self.phase == Phases.SETUP:
+			self.change_phase(random.choice(self.players), Phases.BEGIN)
+
+		if self.phase == Phases.BEGIN:
+			# Kick down the door!
+			door_card = self.door_deck.draw()
+
+			if isinstance(door_card, cards.Monster):
+				self.combat = Combat([self.current_player], [door_card])
+
+				self.change_phase(self.current_player, Phases.COMBAT)
+				self.broadcast({
+					'type': 'combat',
+					'players': [self.current_player.id],
+					'monsters': door_card.info(self.current_player)
+				})
 
 	def setup(self):
 		for player in self.players:
@@ -220,8 +261,8 @@ class Game(object):
 		self.started = True
 		self.setup()
 		
-		while not self.killed:
-			self.clock.tick(10)
+		#while not self.killed:
+		#	self.clock.tick(10)
 
 	def is_turn(self, player):
 		return (not self.current_player) or (player == self.current_player)
