@@ -49,7 +49,10 @@ class Deck(object):
 
 		# Regenerate the id's after the cards have been shuffled so that you can't track the ids.
 		for card in self.cards:
+			# remove old card id and re-add to game. This solution kind of sucks TODO make nice
+			del self.game.cards[card.id]
 			card.id = self.id_generator.new_id()
+			self.game.cards[card.id] = card
 	
 class ClassicDoorDeck(Deck):
 	def hidden_card(self, id):
