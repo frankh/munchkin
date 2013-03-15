@@ -55,16 +55,27 @@
 			background-size: 100%, 100%;
 		}
 
+		.highlighted_target:hover {
+			cursor: pointer;
+		}
+
+		.highlighted_target {
+			border: solid red 1px !important;
+		}
+
+		.highlighted_selected {
+			border: solid green 1px !important;
+		}
+
 		.action {
 			width: 20px;
 			height: 20px;
 			opacity: 0.5;
-
-			display: inline-block;
 		}
 
 		.action:hover {
 			opacity: 0.9;
+			cursor: pointer;
 		}
 
 		.action_FIGHT {
@@ -77,12 +88,29 @@
 			background-size: 100%, 100%;
 		}
 
+		.action_PLAY {
+			background-image: url(res/icons/play.png);
+			background-size: 100%, 100%;
+		}
+
 		.template {
 			display: none !important;
 		}
 
 		.player_name {
 			font-weight: bold;
+		}
+
+		.combat {
+			background-color: yellow;
+		}
+
+		.combat_players, 
+		.combat_monsters {
+			min-height: 50px;
+			min-width: 100px;
+
+			border: solid black 1px;
 		}
 
 		#console {
@@ -121,6 +149,11 @@
 		<div class="card template">
 			<div class="action action_FIGHT"></div>
 			<div class="action action_CARRY"></div>
+			<div class="action action_PLAY"></div>
+		</div>
+		<div class="combat">
+			<div class="combat_players"></div>
+			<div class="combat_monsters"></div>
 		</div>
 	</body>
 </html>

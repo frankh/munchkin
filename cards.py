@@ -4,12 +4,16 @@ from enums import Moves, Phases
 IMAGE_ROOT = 'res/'
 
 class Card(object):
-	def __init__(self, deck, id):
+	def __init__(self, game, deck, id):
 		self.id = id
 		self.in_hand = True
 		self.deck = deck
+		self.game = game
 
-	def can_play(self, move, phase, in_turn):
+	def discard(self):
+		self.game.discard(self)
+
+	def can_play(self, move, target, phase, in_turn):
 		return False
 
 	def info(self, player=None):
@@ -30,7 +34,10 @@ class TreasureCard(Card):
 class Monster(DoorCard):
 	level = 1
 
-	def bonus(self, player):
+	level_ups = 1
+	treasures = 1
+
+	def bonus(self, player=None):
 		return 0
 
 	def on_escape(self, player):
@@ -40,11 +47,12 @@ class Monster(DoorCard):
 		return True
 
 	def bad_stuff(self, player):
+		"""NO BAD STUFF"""
 		pass
 
-	def can_play(self, move, phase, in_turn):
-		return super().can_play(move, phase, in_turn) or \
-		    (move == Moves.FIGHT and self.in_hand and in_turn)
+	def can_play(self, move, target, phase, in_turn):
+		return super().can_play(move, target, phase, in_turn) or \
+		    (move == Moves.FIGHT and self.in_hand and in_turn and target == None)
 
 	def info(self, player=None):
 		d = super().info(player)
@@ -57,6 +65,7 @@ class Monster(DoorCard):
 class Item(TreasureCard):
 	name = "Unimplemented Item"
 	bonus = 0
+	value = None
 
 	image = "treasure_back.png"
 
@@ -66,9 +75,9 @@ class Item(TreasureCard):
 	def can_equip(self, player):
 		return True
 
-	def can_play(self, move, phase, in_turn):
-		return super().can_play(move, phase, in_turn) or \
-		    (move == Moves.CARRY and self.in_hand and in_turn)
+	def can_play(self, move, target, phase, in_turn):
+		return super().can_play(move, target, phase, in_turn) or \
+		    (move == Moves.CARRY and self.in_hand and in_turn and target == None)
 
 	def info(self, player=None):
 		d = super().info(player)
@@ -79,22 +88,27 @@ class CombatOneShot(Item):
 	def can_equip(self, player):
 		return False
 
-	def can_play(self, move, phase, in_turn):
-		return super().can_play(move, phase, in_turn) or \
-			(move == Moves.PLAY and phase == Phases.COMBAT)
+	def play(self, target):
+		return ('attach_to_combat', target)
+
+	def can_play(self, move, target, phase, in_turn):
+		return super().can_play(move, target, phase, in_turn) or \
+			(move == Moves.PLAY and phase == Phases.COMBAT and target in ("combat_players", "combat_monsters"))
 
 class MagicMissile(CombatOneShot):
 	name = "Magic Missile"
 	image = "MagicMissile.jpg"
+	value = 100
 
 class FreezingExplosivePotion(CombatOneShot):
 	name = "Freezing Explosive Potion"
 	image = "FreezingExplosivePotion.jpg"
+	value = 100
 
 class SpikyKnees(Item):
 	name = "Spiky Knees"
 	image = "Spiky_Knees.jpg"
-
+	value = 100
 	bonus = 1
 
 class MrBones(Monster):
@@ -102,7 +116,7 @@ class MrBones(Monster):
 	image = "MrBones.jpg"
 
 	level = 2
-	treasure = 1
+	treasures = 1
 
 	def bad_stuff(self, player):
 		"""His bony touch costs you 2 levels."""
@@ -114,7 +128,7 @@ class UndeadHorse(Monster):
 	image = "Undead_Horse.jpg"
 
 	level = 4
-	treasure = 2
+	treasures = 2
 
 	def bonus(self, player):
 		"""+5 Against Dwarves"""

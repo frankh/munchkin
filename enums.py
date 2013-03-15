@@ -12,6 +12,7 @@ Phases = enum(
 	'POST_COMBAT',
 	'LOOT_ROOM',
 	'CHARITY',
+	'END',
 )
 
 Moves = enum(
@@ -20,5 +21,6 @@ Moves = enum(
 	'PLAY',
 	'FIGHT',
 	'GIVE',
-	'DONE'
+	'DONE',
+	'WAIT'
 )

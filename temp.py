@@ -12,6 +12,7 @@ class FileHandler(tornado.web.RequestHandler):
 
         mime_type = mimetypes.guess_type(path)
         self.set_header("Content-Type", mime_type[0] or 'text/plain')
+        self.set_header("Cache-Control", "max-age=604800, public")
 
         outfile = open(path, 'rb')
         for line in outfile:
