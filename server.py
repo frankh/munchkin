@@ -3,6 +3,7 @@ import cards
 import logging
 import threading
 import json
+import time
 from enums import Moves, Phases
 from collections import defaultdict
 
@@ -331,6 +332,7 @@ class Game(EventSystem):
 		self.phase = phase
 		
 		self.update_valid_moves()
+		self.timeout(5.0)
 
 	def update_valid_moves(self):
 		for player in self.players:
@@ -338,11 +340,11 @@ class Game(EventSystem):
 			self.send(player, {'type': 'valid_moves', 'moves':player_moves})
 
 			# If the player has no moves, auto-ready them. If their only move has no card, their only move is to ready. Ready them.
-			if (not player.ready) and ((not player_moves) or (len(player_moves) == 1 and None in player_moves)):
-				self.broadcast_message(player.name + " is ready")
-				self.ready(player)
+			# if (not player.ready) and ((not player_moves) or (len(player_moves) == 1 and None in player_moves)):
+			# 	self.ready(player)
 
 	def ready(self, player):
+		self.broadcast_message(player.name + " is ready")
 		player.ready = True
 		all_ready = True
 
@@ -403,6 +405,9 @@ class Game(EventSystem):
 				if hasattr(card, 'discard'):
 					card.discard()
 
+			for player in self.combat.players:
+				self.update_player(player)
+				
 			self.combat = None
 			
 			self.change_phase(self.current_player, Phases.POST_COMBAT)
@@ -417,6 +422,7 @@ class Game(EventSystem):
 			self.deal(player, self.treasure_deck, count=4)
 
 		self.change_phase(None, Phases.SETUP)
+		self.timeout(10.0)
 
 	def start(self):
 		log.debug("Starting game")
@@ -445,7 +451,7 @@ class Game(EventSystem):
 			Phases.BEGIN : [Moves.DRAW, Moves.CARRY, Moves.PLAY],
 			Phases.PRE_DRAW : [Moves.DRAW, Moves.PLAY, Moves.CARRY],
 			Phases.KICK_DOOR : [Moves.DRAW, Moves.PLAY, Moves.CARRY],
-			Phases.COMBAT : [Moves.PLAY, Moves.CARRY],
+			Phases.COMBAT : [Moves.PLAY],
 			Phases.POST_COMBAT : [Moves.PLAY, Moves.CARRY, Moves.DONE],
 			Phases.LOOT_ROOM : [Moves.PLAY, Moves.CARRY, Moves.DONE],
 			Phases.CHARITY : [Moves.PLAY, Moves.CARRY, Moves.DONE, Moves.GIVE],
@@ -510,6 +516,21 @@ class Game(EventSystem):
 
 		self.update_player(player)
 		self.update_valid_moves()
+		self.timeout(5.0)
+
+	def timeout(self, timeout):
+		current_action = self.action_number
+
+		def ready_players():
+			if self.action_number == current_action:
+				for player in self.players:
+					self.ready(player)
+
+		self.sched(ready_players, timeout)
+		self.broadcast({
+			'type': 'timeout',
+			'timeout': timeout*1000,
+		})
 
 	def all_carried_cards(self):
 		pass
@@ -651,7 +672,10 @@ if __name__ == '__main__':
 		http_server = tornado.httpserver.HTTPServer(application)
 		http_server.listen(8888)
 		socket_app.listen(800)
-		tornado.ioloop.IOLoop.instance().start()
+		log.debug('Listening on port 8888')
+		iol = tornado.ioloop.IOLoop.instance()
+		tornado.ioloop.PeriodicCallback(lambda: None,500,iol).start()
+		iol.start()
 	except BaseException as e:
 		for game in games.values():
 			game.killed = True

@@ -6,6 +6,28 @@ if (typeof String.prototype.startsWith != 'function') {
 
 $(document).ready(function() {
 	var socket;
+
+	var timer_update_speed = 50;
+
+	setInterval(function() {
+		$('.timer_bar').each(function() {
+			var remaining = $(this).attr('remaining');
+
+			if( !remaining ) {
+				return;
+			}
+
+			remaining -= timer_update_speed;
+			if( remaining < 0 ) {
+				remaining = 0;
+			}
+
+			$(this).attr('remaining', remaining);
+			$(this).css('width', (remaining / $(this).attr('total') * 100) + '%');
+		})
+		var remaining = $('.timer_bar').attr('remaining');
+		$('.timer_bar')
+	}, timer_update_speed);
 	
 	function add_player(player) {
 		var new_player = $(".player.template").clone();
@@ -132,6 +154,8 @@ $(document).ready(function() {
 	};
 
 	$("#connect").click(function() {
+		$('.console_message').remove();
+
 		if (socket) {
 			socket.close();
 		}
@@ -150,6 +174,9 @@ $(document).ready(function() {
 				add_player(msg.player);
 			} else if (msg.type == "draw") {
 				add_card(msg.player, msg.card);
+			} else if (msg.type == "timeout") {
+				$('.timer_bar').attr('total', msg.timeout);
+				$('.timer_bar').attr('remaining', msg.timeout);
 			} else if (msg.type == "valid_moves") {
 				$('.action').hide();
 				for(var card_id in msg.moves) {
