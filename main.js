@@ -67,9 +67,13 @@ $(document).ready(function() {
 		$(".player").not(".template").remove();
 	};
 
-	function add_card(player, card) {
+	function deal_card(player, card) {
 		$(".player[player_id="+player+"] .player_hand").append(create_card(card));
 	};
+
+	function add_card_to_combat(card) {
+		$(".combat .combat_monsters").append(create_card(card));
+	}
 
 	function remove_highlights() {
 		$('.highlighted')
@@ -173,7 +177,7 @@ $(document).ready(function() {
 			} else if (msg.type == "player") {
 				add_player(msg.player);
 			} else if (msg.type == "draw") {
-				add_card(msg.player, msg.card);
+				deal_card(msg.player, msg.card);
 			} else if (msg.type == "timeout") {
 				$('.timer_bar').attr('total', msg.timeout);
 				$('.timer_bar').attr('remaining', msg.timeout);
@@ -192,6 +196,25 @@ $(document).ready(function() {
 			} else if (msg.type == "message") {
 				if( msg.message.from == "system" ) {
 					$('#console').append($('<div class="console_message system_message">'+msg.message.text+'</div>'));
+				}
+			} else if (msg.type == "combat") {
+				var combat = msg.combat;
+				var players = combat.players;
+				var monster_cards = combat.monster_cards;
+
+				$('.combat_monsters .card').remove();
+				$('.combat_player_detail').remove();
+
+				for( var i in monster_cards ) {
+					var card = monster_cards[i];
+					add_card_to_combat(card);
+				}
+				
+				for( var i in players ) {
+					var player_id = players[i];
+					var player = $('.player[player_id='+player_id+']');
+
+					$('<span class="combat_player_detail">'+player.find('.player_name').text()+' ('+player.find('.player_total').text()+')</span>').appendTo($('.combat_players'));
 				}
 			}
 		};
